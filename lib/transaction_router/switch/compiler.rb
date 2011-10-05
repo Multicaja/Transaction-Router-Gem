@@ -17,14 +17,15 @@ module TransactionRouter
             raise "El DSL de transacciones debe ser escrito en un bloque que no recibe parámetros"
           end
           dsl.instance_exec &block
-          self.route_set = dsl.route_set
+          Switch.route_set = dsl.route_set
           compile
         end
 
         private
 
         def compile
-          self.route_set.each_key do |name, options|
+          puts "Conjunto de rutas: #{Switch.route_set}"
+          Switch.route_set.each do |name, options|
             case options[:type]
             when :file
               class_eval <<-METODO_ARCHIVO, __FILE__, __LINE__ + 1
@@ -57,7 +58,7 @@ module TransactionRouter
             class_eval <<-METODO_BANG, __FILE__, __LINE__ + 1
               def self.#{name}!(params)
                 result = #{name}(params)
-                raise(#{self.settings[:bang_method_exception]}, "La transacción no arrojó 01:'" + result["MENSAJE_RESPUESTA"] + "'") if result["CODIGO_RESPUESTA"] != "01"
+                raise(#{Switch.settings[:bang_method_exception]}, "La transacción no arrojó 01:'" + result["MENSAJE_RESPUESTA"] + "'") if result["CODIGO_RESPUESTA"] != "01"
                 result
               end
             METODO_BANG

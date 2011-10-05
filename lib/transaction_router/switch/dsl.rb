@@ -12,9 +12,9 @@ module TransactionRouter
 
       def route_set
         routes = {}
-        @route_set.map do |route|
-          if @raise_on_duplicates and routes.key? route[:type]
-            raise "La transacción #{route[:type]} ya fue mencionada"
+        @route_set.each do |route|
+          if @raise_on_duplicates and routes.key? route[:name]
+            raise "La transacción #{route[:name]} ya fue mencionada"
           end
           routes[route[:name]] = { :type => route[:type], :options => route[:options] }
         end
@@ -22,15 +22,15 @@ module TransactionRouter
       end
 
       private
-      def file(trx_name, options)
+      def file(trx_name, options = {})
         route :file, trx_name, options
       end
 
-      def class(trx_name, options)
+      def class(trx_name, options = {})
         route :class, trx_name, options
       end
 
-      def ws(trx_name, options)
+      def ws(trx_name, options = {})
         route :ws, trx_name, options
       end
 
