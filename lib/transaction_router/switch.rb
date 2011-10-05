@@ -1,5 +1,7 @@
+# coding: utf-8
 module TransactionRouter
   class Switch
+    include ClassLoader
     
     class_attribute :route_set
     class_attribute :settings
