@@ -35,7 +35,7 @@ module TransactionRouter
       end
 
       def route(route_type, trx_name, options = {})
-        raise "La ruta de la transacción #{trx_name} tiene un error: el tipo #{route_type} es inválido", unless @valid_types.include? route_type
+        raise "La ruta de la transacción #{trx_name} tiene un error: el tipo #{route_type} es inválido" unless @valid_types.include? route_type
         validate_options trx_name, options
         @route_set << { :type => route_type, :name => trx_name, :options => options }
       end
@@ -45,6 +45,7 @@ module TransactionRouter
           raise "La ruta de la transacción #{trx_name} contiene una opción inválida: #{opn.to_s}" unless @valid_options.include? opn
         end
       end
+
     end
   end
 end

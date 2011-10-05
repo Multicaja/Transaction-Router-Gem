@@ -1,7 +1,7 @@
 # coding: utf-8
 module TransactionRouter
   class Switch
-    class FileGateway
+    module FileGateway
       extend ActiveSupport::Concern
 
       module ClassMethods

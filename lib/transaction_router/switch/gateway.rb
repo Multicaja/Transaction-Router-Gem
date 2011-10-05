@@ -6,7 +6,7 @@ require "transaction_router/switch/ws_gateway"
 
 module TransactionRouter
   class Switch
-    class Gateway
+    module Gateway
       extend ActiveSupport::Concern
 
       include FileGateway

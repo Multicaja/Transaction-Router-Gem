@@ -3,6 +3,7 @@
 require "rails"
 require "active_support/core_ext/class/attribute"
 require "transaction_router/switch/class_loader"
+require "transaction_router/switch/compiler"
 require "transaction_router/switch/gateway"
 
 module TransactionRouter
