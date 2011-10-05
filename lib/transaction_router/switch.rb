@@ -3,10 +3,18 @@ module TransactionRouter
     
     class_attribute :route_set
     class_attribute :settings
+    class_attribute :class_cache
 
     class << self
 
-      def init(settings = {})
+      def init(settings)
+        merge_settings settings
+        self.route_set = {}
+        self.class_cache = {}
+      end
+
+      private
+      def merge_settings(settings = {})
         default_settings = {}
         default_settings[:relative_file_path] = "test"
         default_settings[:root_path] = Rails.root.to_s
