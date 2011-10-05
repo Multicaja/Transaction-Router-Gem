@@ -1,6 +1,6 @@
 # coding: utf-8
 
-require "switch/dsl"
+require "transaction_router/switch/dsl"
 
 module TransactionRouter
   class Switch

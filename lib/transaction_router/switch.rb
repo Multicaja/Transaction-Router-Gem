@@ -2,8 +2,8 @@
 
 require "rails"
 require "active_support/core_ext/class/attribute"
-require "switch/class_loader"
-require "switch/gateway"
+require "transaction_router/switch/class_loader"
+require "transaction_router/switch/gateway"
 
 module TransactionRouter
   class Switch

@@ -1,8 +1,8 @@
 # coding: utf-8
 
-require "switch/file_gateway"
-require "switch/class_gateway"
-require "switch/ws_gateway"
+require "transaction_router/switch/file_gateway"
+require "transaction_router/switch/class_gateway"
+require "transaction_router/switch/ws_gateway"
 
 module TransactionRouter
   class Switch
