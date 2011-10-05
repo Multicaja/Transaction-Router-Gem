@@ -1,80 +1,30 @@
 module TransactionRouter
   class Switch
- 
+    
+    class_attribute :route_set
+    class_attribute :settings
+
     class << self
 
-      # Responde la transacción con un archivo, por lo que no recibe parámetros
-      def archivo(transaction_name, params)
-        filename = file_name transaction_name
-        if File.exists? filename
-          response = return_file filename, params
-        else
-          response = return_error transaction_name
-        end
-        response
+      def init(settings = {})
+        default_settings = {}
+        default_settings[:relative_file_path] = "test"
+        default_settings[:root_path] = Rails.root.to_s
+        # Se arroja cuando una transacción es ejecutada con su método bang y el gateway no retorna 01
+        default_settings[:bang_method_exception] = Application::ValidationError
+        # Se arroja cuando una transacción debe retornar archivo, pero éste no existe
+        default_settings[:on_file_not_found_exception] = Application::BaseWsError
+        # Se arroja cuando una transación no puede encontrar su clase respectiva
+        default_settings[:on_class_not_found_exception] = Application::ValidationError
+        self.settings = default_settings.merge settings
       end
 
-      # Responde la transacción con un método
-      def simulado(transaction_name, params)
-        klass = "#{transaction_name.camelize}Transaction"
-        if class_exists? klass
-          klass = const_get klass
-          simulator = klass.new
-          response = simulator.simulate params
-        else
-          raise Application::ValidationError, "La transacción #{transaction_name} no se pudo simular porque no existe la clase #{klass}" 
-        end
-        response
+      def trx_options(name)
+        raise "La ruta no existe" unless self.route_set[name]
+        self.route_set[name][:options]
       end
 
-      # Responde la transacción con el webservice
-      def ws(transaction_name, payload)
-        Rails.logger.debug "ItGateway: Invocando WS-#{transaction_name.upcase}: '#{payload}'"
-        Rails.logger.debug "Servidor remoto en [#{ws_uri}]"
-        ws_payload = {}
-        # El hash viene con símbolos como llaves, las que tienen que pasar a strings en mayúsculas
-        payload.map{ |k,v| ws_payload[k.to_s.upcase] = v }
-        response = WebserviceClient.call(transaction_name.upcase, ws_payload)
-        response
-      end
+    end # ClassMethods
 
-      def before_call(transaction_name, params)
-        klass = "#{transaction_name.camelize}Transaction"
-        if class_exists? klass
-          klass = const_get klass
-          obj = klass.new
-          if klass.method_defined? :before_call
-            obj.before_call params
-          end
-        end
-      end
-
-
-      # Se llama después de resolver la transacción, con los resultados arrojados por quien la ejecutó
-      def after_call(transaction_name, result, params)
-        klass = "#{transaction_name.camelize}Transaction"
-        if class_exists? klass
-          klass = const_get klass
-          obj = klass.new
-          if klass.method_defined? :after_call
-            obj.after_call result, params
-          end
-        end
-      end
-
-
-      # Retorna +:archivo+, +:simulada, o +:ws+ según la configuración de la transacción
-      def route(transaction_name, silent = false)
-        trx_name_dc = transaction_name.downcase
-        if trx_list.key? trx_name_dc
-          str_route = trx_list[trx_name_dc]
-        else
-          str_route = :no_mencionada_en_config
-        end
-        str_route_to_symbol str_route
-      end
-
-    end # class methods 
-
- end
+  end
 end
