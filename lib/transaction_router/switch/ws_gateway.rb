@@ -1,4 +1,7 @@
 # coding: utf-8
+
+require "switch/webservice_client"
+
 module TransactionRouter
   class Switch
     module WsGateway

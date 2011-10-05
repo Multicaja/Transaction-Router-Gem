@@ -1,4 +1,9 @@
 # coding: utf-8
+
+require "switch/file_gateway"
+require "switch/class_gateway"
+require "switch/ws_gateway"
+
 module TransactionRouter
   class Switch
     class Gateway
@@ -9,6 +14,8 @@ module TransactionRouter
       include WsGateway
 
       module ClassMethods
+
+        # los métodos que enrutan la transacción a una clase, archivo o webservice son definidos en los gateways respectivos
 
         def before_call(transaction_name, params)
           klass = load_class transaction_name

@@ -1,10 +1,21 @@
 # coding: utf-8
+
+require "rails"
+require "active_support/core_ext/class/attribute"
+require "switch/class_loader"
+require "switch/gateway"
+
 module TransactionRouter
   class Switch
     include ClassLoader
+    include Gateway
+    include Compiler
     
+    # conjunto de transacciones y las rutas por las que se irán
     class_attribute :route_set
+    # settings generales del switch
     class_attribute :settings
+    # caché de clases relacionadas con transacciones
     class_attribute :class_cache
 
     class << self

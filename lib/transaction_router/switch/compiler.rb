@@ -1,4 +1,7 @@
 # coding: utf-8
+
+require "switch/dsl"
+
 module TransactionRouter
   class Switch
     module Compiler
@@ -17,6 +20,8 @@ module TransactionRouter
           self.route_set = dsl.route_set
           compile
         end
+
+        private
 
         def compile
           self.route_set.each_key do |name, options|
