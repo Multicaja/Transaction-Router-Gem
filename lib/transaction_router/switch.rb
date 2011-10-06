@@ -27,6 +27,10 @@ module TransactionRouter
         self.class_cache = {}
       end
 
+      def log
+        self.settings[:logger]
+      end
+
       private
       def merge_settings(settings = {})
         default_settings = {}
@@ -38,6 +42,7 @@ module TransactionRouter
         default_settings[:on_file_not_found_exception] = Application::BaseWsError
         # Se arroja cuando una transación no puede encontrar su clase respectiva
         default_settings[:on_class_not_found_exception] = Application::ValidationError
+        default_settings[:logger] = Rails.logger
         self.settings = default_settings.merge settings
       end
 

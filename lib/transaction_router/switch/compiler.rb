@@ -29,7 +29,7 @@ module TransactionRouter
           case type
           when :file
             answer_with_file name, settings
-          when :class
+          when :klass
             answer_with_class name, settings
           else # :ws
             answer_with_ws name, settings
@@ -42,7 +42,7 @@ module TransactionRouter
           class_eval <<-METODO_ARCHIVO, __FILE__, __LINE__ + 1
             def self.#{name}(params)
               before_call :#{name}, params
-              result = archivo(:#{name}, params)
+              result = file(:#{name}, params)
               after_call :#{name}, result, params
               result
             end
@@ -53,7 +53,7 @@ module TransactionRouter
           class_eval <<-METODO_SIMULADO, __FILE__, __LINE__ + 1
             def self.#{name}(params)
               before_call :#{name}, params
-              result = simulado(:#{name}, params)
+              result = code(:#{name}, params)
               after_call :#{name}, result, params
               result
             end
@@ -77,7 +77,7 @@ module TransactionRouter
             case settings[:type]
             when :file
               answer_with_file name, settings
-            when :class
+            when :klass
               answer_with_class name, settings
             else # :ws
               answer_with_ws name, settings

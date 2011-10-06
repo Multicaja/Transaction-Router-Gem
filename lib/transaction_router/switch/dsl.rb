@@ -7,7 +7,7 @@ module TransactionRouter
 
       def initialize(routes = {})
         @route_set = routes
-        @valid_types = [:file, :class, :ws]
+        @valid_types = [:file, :klass, :ws]
         @valid_options = { 
           :klass => [:class], 
           :file => [:filename, :filepath, :on_file_not_found_exception],
@@ -20,8 +20,8 @@ module TransactionRouter
         route :file, trx_name, options
       end
 
-      def class(trx_name, options = {})
-        route :class, trx_name, options
+      def klass(trx_name, options = {})
+        route :klass, trx_name, options
       end
 
       def ws(trx_name, options = {})
