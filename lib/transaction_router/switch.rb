@@ -21,7 +21,7 @@ module TransactionRouter
 
     class << self
 
-      def init(settings)
+      def init(settings = {})
         merge_settings settings
         self.route_set = {}
         self.class_cache = {}
@@ -42,7 +42,7 @@ module TransactionRouter
       end
 
       def trx_options(name)
-        raise "La ruta no existe" unless self.route_set[name]
+        raise "La transacción #{name} no existe" unless self.route_set[name]
         self.route_set[name][:options]
       end
 

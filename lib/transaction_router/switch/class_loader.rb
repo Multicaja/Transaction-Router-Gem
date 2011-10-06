@@ -25,7 +25,7 @@ module TransactionRouter
 
         def class_name(transaction_name)
           op = trx_options transaction_name
-          klass = op[:class] || "#{transaction_name.camelize}Transaction"
+          klass = op[:class] || "#{transaction_name.to_s.camelize}Transaction"
         end
 
         def class_exists?(class_name)

@@ -18,9 +18,9 @@ module TransactionRouter
 
         def file_name(transaction_name)
           op = trx_options transaction_name
-          filename = op[:filename] || "#{transaction_name.upcase}.xml"
-          relpath = op[:filepath] || self.settings[:relative_file_path]
-          "#{self.settings[:root_path]}/#{relpath}/#{filename}"
+          filename = op[:filename] || "#{transaction_name.to_s.upcase}.xml"
+          relpath = op[:filepath] || Switch.settings[:relative_file_path]
+          "#{Switch.settings[:root_path]}/#{relpath}/#{filename}"
         end
 
         def return_file(filename, params)
@@ -39,7 +39,7 @@ module TransactionRouter
 
         def return_error(transaction_name)
           op = trx_options transaction_name
-          exception = op[:on_file_not_found] || self.settings[:on_file_not_found_exception]
+          exception = op[:on_file_not_found_exception] || Switch.settings[:on_file_not_found_exception]
           raise exception, "Transacción configurada para retornar archivo, pero sin archivo de respuesta"
         end
 

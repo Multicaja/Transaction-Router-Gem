@@ -21,39 +21,66 @@ module TransactionRouter
           compile
         end
 
+        # Se llama para sobreescribir el comportamiento de una ruta específica
+        def override_route(name, type, options)
+          if Switch.method_defined? name
+            Switch.remove_method name
+          end
+          case type
+          when :file
+            answer_with_file name, settings
+          when :class
+            answer_with_class name, settings
+          else # :ws
+            answer_with_ws name, settings
+          end
+        end
+
         private
+
+        def answer_with_file(name, settings)
+          class_eval <<-METODO_ARCHIVO, __FILE__, __LINE__ + 1
+            def self.#{name}(params)
+              before_call :#{name}, params
+              result = archivo(:#{name}, params)
+              after_call :#{name}, result, params
+              result
+            end
+          METODO_ARCHIVO
+        end
+
+        def answer_with_class(name, settings)
+          class_eval <<-METODO_SIMULADO, __FILE__, __LINE__ + 1
+            def self.#{name}(params)
+              before_call :#{name}, params
+              result = simulado(:#{name}, params)
+              after_call :#{name}, result, params
+              result
+            end
+          METODO_SIMULADO
+        end
+
+        def answer_with_ws(name, settings)
+          class_eval <<-METODO_WS, __FILE__, __LINE__ + 1
+            def self.#{name}(params)
+              before_call :#{name}, params
+              result = ws(:#{name}, params)
+              after_call :#{name}, result, params
+              result
+            end
+          METODO_WS
+        end
 
         def compile
           puts "Conjunto de rutas: #{Switch.route_set}"
-          Switch.route_set.each do |name, options|
-            case options[:type]
+          Switch.route_set.each do |name, settings|
+            case settings[:type]
             when :file
-              class_eval <<-METODO_ARCHIVO, __FILE__, __LINE__ + 1
-                def self.#{name}(params)
-                  before_call "#{name}", params
-                  result = archivo("#{name}", params)
-                  after_call "#{name}", result, params
-                  result
-                end
-              METODO_ARCHIVO
+              answer_with_file name, settings
             when :class
-              class_eval <<-METODO_SIMULADO, __FILE__, __LINE__ + 1
-                def self.#{name}(params)
-                  before_call "#{name}", params
-                  result = simulado("#{name}", params)
-                  after_call "#{name}", result, params
-                  result
-                end
-              METODO_SIMULADO
+              answer_with_class name, settings
             else # :ws
-              class_eval <<-METODO_WS, __FILE__, __LINE__ + 1
-                def self.#{name}(params)
-                  before_call "#{name}", params
-                  result = ws("#{name}", params)
-                  after_call "#{name}", result, params
-                  result
-                end
-              METODO_WS
+              answer_with_ws name, settings
             end
             class_eval <<-METODO_BANG, __FILE__, __LINE__ + 1
               def self.#{name}!(params)
