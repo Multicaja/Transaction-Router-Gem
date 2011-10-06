@@ -7,6 +7,7 @@ module TransactionRouter
       module ClassMethods
         # Responde la transacción con un archivo
         def file(transaction_name, params)
+          Switch.log.debug "Switch->[#{transaction_name}]: Se devolverá archivo..."
           filename = file_name transaction_name
           if File.exists? filename
             response = return_file filename, params
