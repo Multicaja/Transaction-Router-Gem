@@ -6,8 +6,13 @@ module TransactionRouter
 
       module ClassMethods
 
-        # Retorna la clase asociada a la transacción
-        def load_class(transaction_name)
+        # Retorna la instancia asociada a la transacción, o levanta una excepción si no existe
+        def instance_class!(transaction_name)
+          load_class transaction_name, true
+        end
+
+        # Retorna la instancia asociada a la transacción, o nil si no existe
+        def instance_class(transaction_name, force = false)
           unless self.class_cache.key? transaction_name
             # La clase no ha sido cargada, la cargamos y guardamos en el caché
             klass = class_name transaction_name
@@ -16,9 +21,11 @@ module TransactionRouter
               klass = const_get klass
               simulator = klass.new
               self.class_cache[transaction_name] = simulator
-            else
+            elsif force
               Switch.log.error "Switch->[#{transaction_name}]: Ups! No se encontró la clase #{klass}..."
               raise self.settings[:on_class_not_found_exception], "La transacción #{transaction_name} no se pudo simular porque no existe la clase #{klass}" 
+            else
+              Switch.log.debug "Switch->[#{transaction_name}]: La clase #{klass} no existe."
             end
           end
           # La clase ya está cargada, la retornamos del caché
