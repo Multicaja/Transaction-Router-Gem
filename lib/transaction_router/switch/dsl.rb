@@ -3,10 +3,14 @@ module TransactionRouter
   class Switch
     class Dsl
 
-      def initialize()
-        @route_set = []
+      def initialize(route_set = [])
+        @route_set = route_set
         @valid_types = [:file, :class, :ws]
-        @valid_options = [:class]
+        @valid_options = { 
+          :klass => [:class], 
+          :file => [:filename, :filepath], 
+          :ws => [] 
+        }
         @raise_on_duplicates = true
       end
 
@@ -40,9 +44,11 @@ module TransactionRouter
         @route_set << { :type => route_type, :name => trx_name, :options => options }
       end
 
-      def validate_options(trx_name, options)
+      def validate_options(route_type, trx_name, options)
         options.each do |opn, opv|
-          raise "La ruta de la transacción #{trx_name} contiene una opción inválida: #{opn.to_s}" unless @valid_options.include? opn
+          unless @valid_options[route_type].include? opn
+            raise "La ruta de la transacción #{trx_name} tiene un error: la opción #{opn.to_s} es inválida en #{route_type}"
+          end
         end
       end
 
