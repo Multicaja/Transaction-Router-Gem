@@ -18,7 +18,7 @@ module TransactionRouter
         # los métodos que enrutan la transacción a una clase, archivo o webservice son definidos en los gateways respectivos
 
         def before_call(transaction_name, params)
-          obj = load_class transaction_name
+          obj = instance_class transaction_name
           if obj.class.method_defined? :before_call
             Switch.log.debug "Switch->[#{transaction_name}]: La clase #{obj.class} contiene before_call. Invocando..."
             obj.before_call params
@@ -27,7 +27,7 @@ module TransactionRouter
 
         # Se llama después de resolver la transacción, con los resultados arrojados por quien la ejecutó
         def after_call(transaction_name, result, params)
-          obj = load_class transaction_name
+          obj = instance_class transaction_name
           if obj.class.method_defined? :after_call
             Switch.log.debug "Switch->[#{transaction_name}]: La clase #{obj.class} contiene after_call. Invocando..."
             obj.after_call result, params

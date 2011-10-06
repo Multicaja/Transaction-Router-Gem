@@ -8,7 +8,7 @@ module TransactionRouter
 
         # Retorna la instancia asociada a la transacción, o levanta una excepción si no existe
         def instance_class!(transaction_name)
-          load_class transaction_name, true
+          instance_class transaction_name, true
         end
 
         # Retorna la instancia asociada a la transacción, o nil si no existe

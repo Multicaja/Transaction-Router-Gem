@@ -10,7 +10,7 @@ module TransactionRouter
         def code(transaction_name, params)
           Switch.log.debug "Switch->[#{transaction_name}]: Se ejecutará una clase..."
           # Se arrojará una excepción si no se encuentra la clase
-          klass = load_class! transaction_name
+          klass = instance_class! transaction_name
           klass.simulate params
         end
 
