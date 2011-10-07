@@ -31,6 +31,11 @@ module TransactionRouter
         self.settings[:logger]
       end
 
+      def trx_options(name)
+        raise "La transacción #{name} no existe" unless self.route_set[name]
+        self.route_set[name][:options]
+      end
+
       private
       def merge_settings(settings = {})
         default_settings = {}
@@ -44,11 +49,6 @@ module TransactionRouter
         default_settings[:on_class_not_found_exception] = Application::ValidationError
         default_settings[:logger] = Rails.logger
         self.settings = default_settings.merge settings
-      end
-
-      def trx_options(name)
-        raise "La transacción #{name} no existe" unless self.route_set[name]
-        self.route_set[name][:options]
       end
 
     end # ClassMethods

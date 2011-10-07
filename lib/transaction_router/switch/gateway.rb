@@ -34,6 +34,22 @@ module TransactionRouter
           end
         end
 
+        def log_routing_file transaction_name
+          log_routing_starting transaction_name, :file
+        end
+
+        def log_routing_class transaction_name
+          log_routing_starting transaction_name, :class
+        end
+
+        def log_routing_ws transaction_name
+          log_routing_starting transaction_name, :ws
+        end
+
+        def log_routing_starting transaction_name, type
+          Switch.log.debug "Switch->[#{transaction_name}]: Enrutando la transacción por #{type}"
+        end
+
       end # ClassMethods
     end
   end

@@ -15,26 +15,34 @@ module TransactionRouter
         def instance_class(transaction_name, force = false)
           unless self.class_cache.key? transaction_name
             # La clase no ha sido cargada, la cargamos y guardamos en el caché
-            klass = class_name transaction_name
+            klass = get_class transaction_name, force
             Switch.log.debug "Switch->[#{transaction_name}]: La clase #{klass} no se encuentra en el caché. Instanciando..."
-            if class_exists? klass
-              klass = const_get klass
+            if klass
               simulator = klass.new
               self.class_cache[transaction_name] = simulator
-            elsif force
-              Switch.log.error "Switch->[#{transaction_name}]: Ups! No se encontró la clase #{klass}..."
-              raise self.settings[:on_class_not_found_exception], "La transacción #{transaction_name} no se pudo simular porque no existe la clase #{klass}" 
-            else
-              Switch.log.debug "Switch->[#{transaction_name}]: La clase #{klass} no existe."
             end
           end
           # La clase ya está cargada, la retornamos del caché
           self.class_cache[transaction_name]
         end
 
-        def class_name(transaction_name)
+        # Obtiene la constante que contiene la clase de la transacción
+        def get_class(transaction_name, force)
           op = trx_options transaction_name
-          klass = op[:class] || "#{transaction_name.to_s.camelize}Transaction"
+          if op[:klass]
+            klass = op[:klass]
+          else
+            klass_name = "#{transaction_name.to_s.camelize}Transaction"
+            if class_exists? klass_name
+              klass = const_get klass_name
+            elsif force
+              Switch.log.error "Switch->[#{transaction_name}]: Ups! No se encontró la clase #{klass_name}..."
+              raise self.settings[:on_class_not_found_exception], "La transacción #{transaction_name} no se pudo simular porque no existe la clase #{klass_name}" 
+            else
+              Switch.log.debug "Switch->[#{transaction_name}]: La clase #{klass_name} no existe."
+              return nil
+            end
+          end
         end
 
         def class_exists?(class_name)

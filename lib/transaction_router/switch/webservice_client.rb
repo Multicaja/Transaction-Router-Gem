@@ -12,6 +12,7 @@ module TransactionRouter
           default_settings[:uri] = APP_CONFIG["ws"]["uri"]
           default_settings[:open_timeout] = APP_CONFIG["ws"]["open_timeout"]
           default_settings[:read_timeout] = APP_CONFIG["ws"]["read_timeout"]
+          default_settings[:namespace] = "urn:multicaja_ws"
           default_settings[:on_timeout_exception] = Application::BaseWsError
           default_settings[:on_http_error_exception] = Application::BaseWsError
           default_settings[:on_soap_error_exception] = Application::BaseWsError
@@ -24,7 +25,7 @@ module TransactionRouter
           self.settings[:logger]
         end
 
-        def call(tipo_tx, params)
+        def call(tipo_tx, params, trx_options)
           #Item array creation
           item_array = []
     
@@ -45,36 +46,58 @@ module TransactionRouter
             }
           }
           
-          log.debug "Enviando un request al ws: #{body.to_s}"
-          
-          #Multicaja's webservice proxy
-          proxy = Savon::Client.new self.settings[:uri]
-          proxy.request.http.open_timeout = self.settings[:open_timeout]
-          proxy.request.http.read_timeout = self.settings[:read_timeout]
+          op = trx_options
+          uri = op[:uri] || self.settings[:uri]
+          open_t = op[:open_timeout] || self.settings[:open_timeout]
+          read_t = op[:read_timeout] || self.settings[:read_timeout]
+          ns = op[:namespace] || self.settings[:namespace]
+
+          proxy = Savon::Client.new uri
+          proxy.request.http.open_timeout = open_t
+          proxy.request.http.read_timeout = read_t
           response = nil
           begin
             response = proxy.webservice! do |soap|
-              soap.namespace = "urn:multicaja_ws"
+              soap.namespace = ns
               soap.body = body
               log.debug "\n \n =====REQUEST XML===#{tipo_tx}===>\n #{format_xml soap.to_xml} \n \n"
               soap
             end
           rescue Timeout::Error => ext
-            log.error "Timeout al invocar al ws: #{ext.message}. Params: #{body.to_s}\nSettings de timeout: open #{proxy.request.http.open_timeout}, read #{proxy.request.http.read_timeout}"
-            raise Application::BaseWsError, "Timeout al invocar el ws: #{ext.message}. Params: #{body.to_s}"
+            msg = <<EXT
+Timeout al invocar al ws: #{ext.message}
+  Params: #{body.to_s}
+  Settings de timeout: 
+    open: #{proxy.request.http.open_timeout}
+    read: #{proxy.request.http.read_timeout}
+EXT
+            log.error msg
+            raise self.settings[:on_timeout_exception], msg
           rescue Savon::SOAPFault => exs
-            log.error "Error al invocar al ws: #{exs.message}. Params: #{body.to_s}"
-            raise Application::BaseWsError, "SOAPFault al invocar el ws: #{exs.message}. Params: #{body.to_s}"
+            msg = <<EXS
+Error SOAP al invocar al ws: #{exs.message}
+  Params: #{body.to_s}
+EXS
+            log.error msg
+            raise self.settings[:on_http_error_exception], msg
           rescue Savon::HTTPError => exh
-            log.error "Error al invocar al ws: #{exh.message}. Params: #{body.to_s}"
-            raise Application::BaseWsError, "HTTPError al invocar el ws: #{exs.message}. Params: #{body.to_s}"
+            msg = <<EXH
+Error HTTP al invocar al ws: #{exh.message}
+  Params: #{body.to_s}
+EXH
+            log.error msg
+            raise self.settings[:on_soap_error_exception], msg
           end
           # se pasa la respuesta a un hash y se chequea que venga el arreglo de items
           result = response.to_hash
           log.debug "\n \n =====RESPONSE XML ====#{tipo_tx}===>\n #{format_xml response.to_xml} \n \n"
           log.debug "Respuesta del ws: #{result.to_s}"
           if response.nil? or not result.key?(:salida_estandar) or result[:salida_estandar].nil? or not result[:salida_estandar].key?(:item)
-            raise Application::BaseWsError, "La respuesta del ws no es valida o no esta completa: #{response.to_s}"
+            msg = <<EXE
+La respuesta del ws no es válida o no está completa: #{response.to_s}
+EXE
+            log.error msg
+            raise self.settings[:on_empty_response_exception], msg
           end
           # en vez de un arreglo de hashes individuales, se retorna un hash con pares :nombrecampo => :valorcampo
           asoc_arr = Hash.new

@@ -15,7 +15,7 @@ module TransactionRouter
           ws_payload = {}
           # El hash viene con símbolos como llaves, las que tienen que pasar a strings en mayúsculas
           payload.map{ |k,v| ws_payload[k.to_s.upcase] = v }
-          response = WebserviceClient.call(transaction_name.to_s.upcase, ws_payload)
+          response = WebserviceClient.call(transaction_name.to_s.upcase, ws_payload, Switch.trx_options(transaction_name))
           response
         end
 

@@ -22,10 +22,12 @@ module TransactionRouter
         end
 
         # Se llama para sobreescribir el comportamiento de una ruta específica
-        def override_route(name, type, options)
-          if Switch.method_defined? name
-            Switch.remove_method name
-          end
+        def override_route(name, type, options = {})
+          # Si la clase ya está instanciada, habrá que instanciarla de nuevo
+          class_cache.delete name if class_cache.key? name
+          # Hay que sobreescribir las opciones de la ruta
+          Switch.route_set[name] = { :type => type, :options => options }
+          # Finalmente, hay que escribir el nuevo método
           case type
           when :file
             answer_with_file name, settings
@@ -41,6 +43,7 @@ module TransactionRouter
         def answer_with_file(name, settings)
           class_eval <<-METODO_ARCHIVO, __FILE__, __LINE__ + 1
             def self.#{name}(params)
+              log_routing_file "#{name}"
               before_call :#{name}, params
               result = file(:#{name}, params)
               after_call :#{name}, result, params
@@ -52,6 +55,7 @@ module TransactionRouter
         def answer_with_class(name, settings)
           class_eval <<-METODO_SIMULADO, __FILE__, __LINE__ + 1
             def self.#{name}(params)
+              log_routing_class "#{name}"
               before_call :#{name}, params
               result = code(:#{name}, params)
               after_call :#{name}, result, params
@@ -63,6 +67,7 @@ module TransactionRouter
         def answer_with_ws(name, settings)
           class_eval <<-METODO_WS, __FILE__, __LINE__ + 1
             def self.#{name}(params)
+              log_routing_ws "#{name}"
               before_call :#{name}, params
               result = ws(:#{name}, params)
               after_call :#{name}, result, params

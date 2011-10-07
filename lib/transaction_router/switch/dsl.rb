@@ -9,7 +9,7 @@ module TransactionRouter
         @route_set = routes
         @valid_types = [:file, :klass, :ws]
         @valid_options = { 
-          :klass => [:class], 
+          :klass => [:klass],
           :file => [:filename, :filepath, :on_file_not_found_exception],
           :ws => [] 
         }
