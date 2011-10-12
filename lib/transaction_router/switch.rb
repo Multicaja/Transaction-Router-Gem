@@ -23,8 +23,7 @@ module TransactionRouter
 
       def init(settings = {})
         merge_settings settings
-        self.route_set = {}
-        self.class_cache = {}
+        reset
       end
 
       def log
@@ -36,7 +35,13 @@ module TransactionRouter
         self.route_set[name][:options]
       end
 
+      def reset
+        self.route_set = {}
+        self.class_cache = {}
+      end
+
       private
+
       def merge_settings(settings = {})
         default_settings = {}
         default_settings[:relative_file_path] = "test"

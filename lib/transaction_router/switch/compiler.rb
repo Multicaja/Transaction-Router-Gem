@@ -12,6 +12,7 @@ module TransactionRouter
         # Es el método que se ejecuta cuando se inicializa el Switch de transacciones. 
         # Este método crea en el Switch todos los métodos mencionados por el DSL
         def draw(&block)
+          reset
           dsl = Dsl.new
           if block.arity >= 1
             raise "El DSL de transacciones debe ser escrito en un bloque que no recibe parámetros"
@@ -77,7 +78,7 @@ module TransactionRouter
         end
 
         def compile
-          puts "Conjunto de rutas: #{Switch.route_set}"
+          log.debug "Conjunto de rutas: #{Switch.route_set}"
           Switch.route_set.each do |name, settings|
             case settings[:type]
             when :file
