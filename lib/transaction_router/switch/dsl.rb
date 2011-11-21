@@ -12,6 +12,9 @@ module TransactionRouter
           :klass => [:klass],
           :file => [:filename, :filepath, :on_file_not_found_exception, :klass],
           :ws => [:klass, :uri, :namespace, :open_timeout, :read_timeout, :on_timeout_exception, :on_http_error_exception, :on_soap_error_exception, :on_empty_response_exception, :logger]
+        }
+      end
+
       private
       def file(trx_name, options = {})
         route :file, trx_name, options
