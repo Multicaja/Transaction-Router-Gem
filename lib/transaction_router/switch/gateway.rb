@@ -33,6 +33,7 @@ module TransactionRouter
             Switch.log.debug "Switch->[#{transaction_name}]: La clase #{obj.class} contiene after_call. Invocando..."
             obj.after_call result, params
           end
+          translate_result result
         end
 
         def log_routing_file transaction_name
@@ -58,6 +59,21 @@ module TransactionRouter
             ma.each do |arg|
               raise Switch.settings[:missing_arg_exception], "La transacción #{transaction_name} requiere el parámetro #{arg}" unless params.include? arg
             end
+          end
+        end
+
+        def translate_result(result)
+          translated = {}
+          result.each do |k,v|
+            if k.is_a? String
+              translated[k.downcase.to_sym] = v
+            end
+          end
+          translated.each do |k,v|
+            result[k] = v unless result[k]
+          end
+          if Switch.settings[:force_result_translation]
+            result.delete_if{|k,v| k.is_a?(String)}
           end
         end
 

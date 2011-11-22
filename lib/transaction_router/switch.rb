@@ -54,6 +54,8 @@ module TransactionRouter
         default_settings[:on_file_not_found_exception] = Application::BaseWsError
         # Se arroja cuando una transación no puede encontrar su clase respectiva
         default_settings[:on_class_not_found_exception] = Application::ValidationError
+        # Si se eliminan o no las llaves en string después de pasarlas a symbol
+        default_settings[:force_result_translation] = false
         default_settings[:logger] = Rails.logger
         self.settings = default_settings.merge settings
       end
