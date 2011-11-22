@@ -30,6 +30,11 @@ module TransactionRouter
         self.settings[:logger]
       end
 
+      def trx_blocks(name)
+        raise "La transacción #{name} no existe" unless self.route_set[name]
+        self.route_set[name][:blocks]
+      end
+
       def trx_options(name)
         raise "La transacción #{name} no existe" unless self.route_set[name]
         self.route_set[name][:options]

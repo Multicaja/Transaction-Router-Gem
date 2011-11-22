@@ -19,6 +19,9 @@ module TransactionRouter
 
         def before_call(transaction_name, params)
           validate_min_args transaction_name, params
+          if blocks(transaction_name).has_before_block?
+            blocks(transaction_name).before_block.call params
+          end
           obj = instance_class transaction_name
           if obj.class.method_defined? :before_call
             Switch.log.debug "Switch->[#{transaction_name}]: La clase #{obj.class} contiene before_call. Invocando..."
@@ -28,12 +31,24 @@ module TransactionRouter
 
         # Se llama después de resolver la transacción, con los resultados arrojados por quien la ejecutó
         def after_call(transaction_name, result, params)
+          if blocks(transaction_name).has_after_block?
+            blocks(transaction_name).after_block.call result, params
+          end
           obj = instance_class transaction_name
           if obj.class.method_defined? :after_call
             Switch.log.debug "Switch->[#{transaction_name}]: La clase #{obj.class} contiene after_call. Invocando..."
             obj.after_call result, params
           end
           translate_result result
+        end
+
+        # Se llama para simular la respuesta si la transacción es de tipo inline
+        def inline(transaction_name, params)
+          if blocks(transaction_name).has_simulate_block?
+            blocks(transaction_name).simulate_block.call params
+          else
+            raise "La transacción #{transaction_name} es de tipo inline pero no definió ningún simulate_call"
+          end
         end
 
         def log_routing_file transaction_name
@@ -75,6 +90,10 @@ module TransactionRouter
           if Switch.settings[:force_result_translation]
             result.delete_if{|k,v| k.is_a?(String)}
           end
+        end
+
+        def blocks(transaction_name)
+          Switch.trx_blocks(transaction_name)
         end
 
       end # ClassMethods

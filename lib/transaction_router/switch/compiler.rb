@@ -1,6 +1,7 @@
 # coding: utf-8
 
 require "transaction_router/switch/dsl"
+require "transaction_router/switch/block_dsl"
 
 module TransactionRouter
   class Switch
@@ -34,6 +35,8 @@ module TransactionRouter
             answer_with_file name, settings
           when :klass
             answer_with_class name, settings
+          when :inline
+            answer_with_blocks name, settings
           else # :ws
             answer_with_ws name, settings
           end
@@ -65,6 +68,19 @@ module TransactionRouter
           METODO_SIMULADO
         end
 
+        def answer_with_blocks(name, settings)
+          class_eval <<-METODO_INLINE, __FILE__, __LINE__ + 1
+            def self.#{name}(params)
+              log_routing_ws "#{name}"
+              before_call :#{name}, params
+              result = inline(:#{name}, params)
+              after_call :#{name}, result, params
+              result
+            end
+          METODO_INLINE
+        end
+
+
         def answer_with_ws(name, settings)
           class_eval <<-METODO_WS, __FILE__, __LINE__ + 1
             def self.#{name}(params)
@@ -85,6 +101,8 @@ module TransactionRouter
               answer_with_file name, settings
             when :klass
               answer_with_class name, settings
+            when :inline
+              answer_with_blocks name, settings
             else # :ws
               answer_with_ws name, settings
             end
