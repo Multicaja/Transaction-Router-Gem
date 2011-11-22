@@ -42,7 +42,7 @@ module TransactionRouter
         validate_options route_type, trx_name, options
         bd = BlockDsl.new
         if block
-          bd.instance_exec block
+          bd.instance_exec &block
           validate_block block
         end
         @route_set[trx_name] = { :type => route_type, :options => options, :blocks => bd }
@@ -56,7 +56,7 @@ module TransactionRouter
         end
       end
 
-      def validate_block(&block)
+      def validate_block(block)
         raise "El bloque no debe recibir argumentos" if block.arity > 0
       end
 
