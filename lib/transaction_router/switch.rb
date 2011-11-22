@@ -46,6 +46,8 @@ module TransactionRouter
         default_settings = {}
         default_settings[:relative_file_path] = "test"
         default_settings[:root_path] = Rails.root.to_s
+        # Se arroja cuando una transacción requiere un parámetro mínimo pero no lo recibe
+        default_settings[:missing_arg_exception] = Application::ValidationError
         # Se arroja cuando una transacción es ejecutada con su método bang y el gateway no retorna 01
         default_settings[:bang_method_exception] = Application::ValidationError
         # Se arroja cuando una transacción debe retornar archivo, pero éste no existe

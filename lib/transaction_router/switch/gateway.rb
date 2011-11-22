@@ -18,6 +18,7 @@ module TransactionRouter
         # los métodos que enrutan la transacción a una clase, archivo o webservice son definidos en los gateways respectivos
 
         def before_call(transaction_name, params)
+          validate_min_args transaction_name, params
           obj = instance_class transaction_name
           if obj.class.method_defined? :before_call
             Switch.log.debug "Switch->[#{transaction_name}]: La clase #{obj.class} contiene before_call. Invocando..."
@@ -48,6 +49,16 @@ module TransactionRouter
 
         def log_routing_starting transaction_name, type
           Switch.log.debug "Switch->[#{transaction_name}]: Enrutando la transacción por #{type}"
+        end
+
+        private
+        def validate_min_args(transaction_name, params)
+          ma = Switch.trx_options(transaction_name)[:min_args]
+          if ma and ma.kind_of? Array
+            ma.each do |arg|
+              raise Switch.settings[:missing_arg_exception], "La transacción #{transaction_name} requiere el parámetro #{arg}" unless params.include? arg
+            end
+          end
         end
 
       end # ClassMethods

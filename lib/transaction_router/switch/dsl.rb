@@ -9,9 +9,9 @@ module TransactionRouter
         @route_set = routes
         @valid_types = [:file, :klass, :ws]
         @valid_options = { 
-          :klass => [:klass],
-          :file => [:filename, :filepath, :on_file_not_found_exception, :klass],
-          :ws => [:klass, :uri, :namespace, :open_timeout, :read_timeout, :on_timeout_exception, :on_http_error_exception, :on_soap_error_exception, :on_empty_response_exception, :logger]
+          :klass => [:klass, :min_args],
+          :file => [:filename, :filepath, :on_file_not_found_exception, :klass, :min_args],
+          :ws => [:klass, :uri, :namespace, :open_timeout, :read_timeout, :on_timeout_exception, :on_http_error_exception, :on_soap_error_exception, :on_empty_response_exception, :logger, :min_args]
         }
       end
 
