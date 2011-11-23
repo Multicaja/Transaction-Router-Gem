@@ -109,7 +109,7 @@ module TransactionRouter
             class_eval <<-METODO_BANG, __FILE__, __LINE__ + 1
               def self.#{name}!(params)
                 result = #{name}(params)
-                raise(#{Switch.settings[:bang_method_exception]}, "La transacción no arrojó 01:'" + result["MENSAJE_RESPUESTA"] + "'") if result["CODIGO_RESPUESTA"] != "01"
+                raise #{Switch.settings[:bang_method_exception]}, result[:mensaje_respuesta] if result[:codigo_respuesta] != "01"
                 result
               end
             METODO_BANG
