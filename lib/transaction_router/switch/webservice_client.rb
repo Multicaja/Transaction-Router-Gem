@@ -31,7 +31,7 @@ module TransactionRouter
     
           params.each do |name, value| 
             item_array << { :nombrecampo => name, :valorcampo => value }
-          end
+        end
           
           #If the params array doesn't contain the name of the transaction, add it as an item. 
           #TODO: Remove this once all calls to this method are performed through gateway classes.
@@ -60,8 +60,34 @@ module TransactionRouter
             response = proxy.webservice! do |soap|
               soap.namespace = ns
               soap.body = body
-              log.debug "\n \n =====REQUEST XML===#{tipo_tx}===>\n #{format_xml soap.to_xml} \n \n"
-              soap
+              # log.debug "\n ===== CONTENIDOS DE SOAP => #{item_array}"
+              # soap.body[:entrada]["tipo-tx"]
+              case tipo_tx
+              when "CONSULTA"
+                log.debug "\n =====REQUEST XML===#{tipo_tx}===>\n"
+                item_array.each do |item|
+                  case item[:nombrecampo]
+                  when "RUT_CLIENTE"
+                    log.debug "RUT_CLIENTE => #{item[:valorcampo]}\n"
+                  when "CELULAR"
+                    log.debug "CELULAR => #{item[:valorcampo]}\n"
+                  end
+                end
+                log.debug "\n"
+              when "LEER_DATOS_USUARIO"
+                log.debug "\n \n =====REQUEST XML===#{tipo_tx}===>\n"
+                item_array.each do |item|
+                  case item[:nombrecampo]
+                  when "ID_USUARIO"
+                    log.debug "ID => #{item[:valorcampo]}\n"
+                  when "RUT"
+                    log.debug "RUT => #{item[:valorcampo]}\n"
+                  end
+                end
+                log.debug "\n"
+              else  
+                log.debug "\n \n =====REQUEST XML===#{tipo_tx}===>\n #{format_xml soap.to_xml} \n \n"
+              end
             end
           rescue Timeout::Error => ext
             msg = <<EXT
@@ -88,10 +114,54 @@ EXH
             log.error msg
             raise self.settings[:on_soap_error_exception], msg
           end
+
           # se pasa la respuesta a un hash y se chequea que venga el arreglo de items
           result = response.to_hash
-          log.debug "\n \n =====RESPONSE XML ====#{tipo_tx}===>\n #{format_xml response.to_xml} \n \n"
-          log.debug "Respuesta del ws: #{result.to_s}"
+          items = result[:salida_estandar][:item]
+          case tipo_tx
+          # logger, según tipo de transacción.
+          when "CONSULTA"
+            log.debug "\n =====RESPONSE XML ===#{tipo_tx}===>\n"
+            items.each do |item|
+              case item[:nombrecampo]  
+              when "SALDO"
+                log.debug "SALDO => #{item[:valorcampo]}"
+              when "CODIGO_RESPUESTA"
+                log.debug "CODIGO_RESPUESTA => #{item[:valorcampo]}\n"
+              when "MENSAJE_RESPUESTA"
+                log.debug "MENSAJE_RESPUESTA => #{item[:valorcampo]}\n"
+              end
+            end
+            log.debug "\n"
+          when "LEER_DATOS_USUARIO"
+            log.debug "\n =====RESPONSE XML ===#{tipo_tx}===>\n"
+            items.each do |item|
+              case item[:nombrecampo]
+              when "STATUS"
+                log.debug "STATUS => #{item[:valorcampo]}\n"
+              when "ESTADO"
+                log.debug "ESTADO => #{item[:valorcampo]}\n"
+              when "NOMBRES"
+                log.debug "NOMBRES => #{item[:valorcampo]}\n"
+              when "APELLIDOS"
+                log.debug "APELLIDOS => #{item[:valorcampo]}\n"
+              when "CELULAR"
+                log.debug "CELUALR => #{item[:valorcampo]}\n"
+              when "EMAIL"
+                log.debug "EMAIL => #{item[:valorcampo]}\n"  
+              when "ID_USUARIO"
+                log.debug "ID => #{item[:valorcampo]}\n"
+              when "MENSAJE_RESPUESTA"
+                log.debug "MENSAJE_RESPUESTA => #{item[:valorcampo]}\n"
+              when "CODIGO_RESPUESTA"
+                log.debug "CODIGO_RESPUESTA => #{item[:valorcampo]}\n"
+              end
+            end
+            log.debug "\n"
+          else
+            log.debug "\n =====RESPONSE XML ====#{tipo_tx}===>\n #{format_xml response.to_xml} \n"
+          end
+          # log.debug "Respuesta del ws: #{result.to_s}"
           if response.nil? or not result.key?(:salida_estandar) or result[:salida_estandar].nil? or not result[:salida_estandar].key?(:item)
             msg = <<EXE
 La respuesta del ws no es válida o no está completa: #{response.to_s}
