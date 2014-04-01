@@ -13,6 +13,7 @@ module TransactionRouter
           default_settings[:open_timeout] = APP_CONFIG["ws"]["open_timeout"]
           default_settings[:read_timeout] = APP_CONFIG["ws"]["read_timeout"]
           default_settings[:namespace] = "urn:multicaja_ws"
+          default_settings[:multicaja_ws] = APP_CONFIG["ws"]["multicaja_ws"]
           default_settings[:on_timeout_exception] = Application::BaseWsError
           default_settings[:on_http_error_exception] = Application::BaseWsError
           default_settings[:on_soap_error_exception] = Application::BaseWsError
@@ -31,7 +32,7 @@ module TransactionRouter
     
           params.each do |name, value| 
             item_array << { :nombrecampo => name, :valorcampo => value }
-        end
+          end
           
           #If the params array doesn't contain the name of the transaction, add it as an item. 
           #TODO: Remove this once all calls to this method are performed through gateway classes.
@@ -51,44 +52,32 @@ module TransactionRouter
           open_t = op[:open_timeout] || self.settings[:open_timeout]
           read_t = op[:read_timeout] || self.settings[:read_timeout]
           ns = op[:namespace] || self.settings[:namespace]
+          multicaja_ws = op[:multicaja_ws] || self.settings[:multicaja_ws]
 
-          proxy = Savon::Client.new uri
-          proxy.request.http.open_timeout = open_t
-          proxy.request.http.read_timeout = read_t
+          # @client = Savon.client(wsdl: "./public/COW_2.wsdl", log: true, wsse_auth: ["usr_multicaja_01", "ht$Gb9c0aJU6"], wsse_timestamp: true, :ssl_verify_mode => :none, env_namespace: :soapenv)
+
+          log.debug "URI => #{uri}"
+          # proxy = Savon::Client.new(wsdl: uri, open_timeout: open_t, read_timeout: read_t, namespace: ns)
+          proxy = Savon.client(wsdl: multicaja_ws, log: true, env_namespace: :soapenv, open_timeout: open_t, read_timeout: read_t)
+
+          log.debug "proxy => #{proxy.inspect}"
           response = nil
           begin
-            response = proxy.webservice! do |soap|
-              soap.namespace = ns
-              soap.body = body
-              # log.debug "\n ===== CONTENIDOS DE SOAP => #{item_array}"
-              # soap.body[:entrada]["tipo-tx"]
-              case tipo_tx
-              when "CONSULTA"
-                log.debug "\n =====REQUEST XML===#{tipo_tx}===>\n"
-                item_array.each do |item|
-                  case item[:nombrecampo]
-                  when "RUT_CLIENTE"
-                    log.debug "RUT_CLIENTE => #{item[:valorcampo]}\n"
-                  when "CELULAR"
-                    log.debug "CELULAR => #{item[:valorcampo]}\n"
-                  end
-                end
-                log.debug "\n"
-              when "LEER_DATOS_USUARIO"
-                log.debug "\n \n =====REQUEST XML===#{tipo_tx}===>\n"
-                item_array.each do |item|
-                  case item[:nombrecampo]
-                  when "ID_USUARIO"
-                    log.debug "ID => #{item[:valorcampo]}\n"
-                  when "RUT"
-                    log.debug "RUT => #{item[:valorcampo]}\n"
-                  end
-                end
-                log.debug "\n"
-              else  
-                log.debug "\n \n =====REQUEST XML===#{tipo_tx}===>\n #{format_xml soap.to_xml} \n \n"
-              end
+            # proxy.body = body
+            # response = client.call
+            response = proxy.call(:webservice) do 
+              # message("tipo-tx" => tipo_tx)
+              message(body)
+              # log.debug "message => #{message}"
             end
+            log.debug "response #{response}"
+            # response = client.call(:entrada, message: {:tipo_tx => tipo_tx, item: => item_array})
+            # response = proxy.webservice! do |soap|
+            #   soap.namespace = ns
+            #   soap.body = body
+              # log.debug "\n \n =====REQUEST XML===#{tipo_tx}===>\n #{format_xml soap.to_xml} \n \n"
+            #   soap
+            # end
           rescue Timeout::Error => ext
             msg = <<EXT
 Timeout al invocar al ws: #{ext.message}
@@ -114,54 +103,10 @@ EXH
             log.error msg
             raise self.settings[:on_soap_error_exception], msg
           end
-
           # se pasa la respuesta a un hash y se chequea que venga el arreglo de items
           result = response.to_hash
-          items = result[:salida_estandar][:item]
-          case tipo_tx
-          # logger, según tipo de transacción.
-          when "CONSULTA"
-            log.debug "\n =====RESPONSE XML ===#{tipo_tx}===>\n"
-            items.each do |item|
-              case item[:nombrecampo]  
-              when "SALDO"
-                log.debug "SALDO => #{item[:valorcampo]}"
-              when "CODIGO_RESPUESTA"
-                log.debug "CODIGO_RESPUESTA => #{item[:valorcampo]}\n"
-              when "MENSAJE_RESPUESTA"
-                log.debug "MENSAJE_RESPUESTA => #{item[:valorcampo]}\n"
-              end
-            end
-            log.debug "\n"
-          when "LEER_DATOS_USUARIO"
-            log.debug "\n =====RESPONSE XML ===#{tipo_tx}===>\n"
-            items.each do |item|
-              case item[:nombrecampo]
-              when "STATUS"
-                log.debug "STATUS => #{item[:valorcampo]}\n"
-              when "ESTADO"
-                log.debug "ESTADO => #{item[:valorcampo]}\n"
-              when "NOMBRES"
-                log.debug "NOMBRES => #{item[:valorcampo]}\n"
-              when "APELLIDOS"
-                log.debug "APELLIDOS => #{item[:valorcampo]}\n"
-              when "CELULAR"
-                log.debug "CELUALR => #{item[:valorcampo]}\n"
-              when "EMAIL"
-                log.debug "EMAIL => #{item[:valorcampo]}\n"  
-              when "ID_USUARIO"
-                log.debug "ID => #{item[:valorcampo]}\n"
-              when "MENSAJE_RESPUESTA"
-                log.debug "MENSAJE_RESPUESTA => #{item[:valorcampo]}\n"
-              when "CODIGO_RESPUESTA"
-                log.debug "CODIGO_RESPUESTA => #{item[:valorcampo]}\n"
-              end
-            end
-            log.debug "\n"
-          else
-            log.debug "\n =====RESPONSE XML ====#{tipo_tx}===>\n #{format_xml response.to_xml} \n"
-          end
-          # log.debug "Respuesta del ws: #{result.to_s}"
+          log.debug "\n \n =====RESPONSE XML ====#{tipo_tx}===>\n #{format_xml response.to_xml} \n \n"
+          log.debug "Respuesta del ws: #{result.to_s}"
           if response.nil? or not result.key?(:salida_estandar) or result[:salida_estandar].nil? or not result[:salida_estandar].key?(:item)
             msg = <<EXE
 La respuesta del ws no es válida o no está completa: #{response.to_s}
