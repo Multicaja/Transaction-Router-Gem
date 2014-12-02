@@ -29,6 +29,8 @@ module TransactionRouter
         def call(tipo_tx, params, trx_options)
           #Item array creation
           item_array = []
+
+          log.debug "TRXRTR REQUEST => #{params}"
     
           params.each do |name, value| 
             item_array << { :nombrecampo => name, :valorcampo => value }
@@ -70,7 +72,7 @@ module TransactionRouter
               message(body)
               # log.debug "message => #{message}"
             end
-            log.debug "response #{response}"
+            # log.debug "TRXRTR RESPONSE: #{response}"
             # response = client.call(:entrada, message: {:tipo_tx => tipo_tx, item: => item_array})
             # response = proxy.webservice! do |soap|
             #   soap.namespace = ns
@@ -86,32 +88,34 @@ Timeout al invocar al ws: #{ext.message}
     open: #{proxy.request.http.open_timeout}
     read: #{proxy.request.http.read_timeout}
 EXT
-            log.error msg
+            log.error "TRXRTR ERROR" + msg
             raise self.settings[:on_timeout_exception], msg
           rescue Savon::SOAPFault => exs
             msg = <<EXS
 Error SOAP al invocar al ws: #{exs.message}
   Params: #{body.to_s}
 EXS
-            log.error msg
+            log.error "TRXRTR ERROR" + msg
             raise self.settings[:on_http_error_exception], msg
           rescue Savon::HTTPError => exh
             msg = <<EXH
 Error HTTP al invocar al ws: #{exh.message}
   Params: #{body.to_s}
 EXH
-            log.error msg
+            log.error "TRXRTR ERROR" + msg
             raise self.settings[:on_soap_error_exception], msg
           end
           # se pasa la respuesta a un hash y se chequea que venga el arreglo de items
           result = response.to_hash
-          log.debug "\n \n =====RESPONSE XML ====#{tipo_tx}===>\n #{format_xml response.to_xml} \n \n"
-          log.debug "Respuesta del ws: #{result.to_s}"
+          if Rails.env = "development" then
+            log.debug "\n \n =====RESPONSE XML ====#{tipo_tx}===>\n #{format_xml response.to_xml} \n \n"
+          end
+          log.debug "TRXRTR RESPONSE: #{result.to_s}"
           if response.nil? or not result.key?(:salida_estandar) or result[:salida_estandar].nil? or not result[:salida_estandar].key?(:item)
             msg = <<EXE
 La respuesta del ws no es válida o no está completa: #{response.to_s}
 EXE
-            log.error msg
+            log.error "TRXRTR ERROR" + msg
             raise self.settings[:on_empty_response_exception], msg
           end
           # en vez de un arreglo de hashes individuales, se retorna un hash con pares :nombrecampo => :valorcampo
