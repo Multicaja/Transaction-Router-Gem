@@ -16,7 +16,7 @@ module TransactionRouter
           unless self.class_cache.key? transaction_name
             # La clase no ha sido cargada, la cargamos y guardamos en el caché
             klass = get_class transaction_name, force
-            Switch.log.debug "Switch->[#{transaction_name}]: La clase #{klass} no se encuentra en el caché. Instanciando..."
+            # Switch.log.debug "Switch->[#{transaction_name}]: La clase #{klass} no se encuentra en el caché. Instanciando..."
             if klass
               simulator = klass.new
               self.class_cache[transaction_name] = simulator
@@ -36,10 +36,10 @@ module TransactionRouter
             if class_exists? klass_name
               klass = const_get klass_name
             elsif force
-              Switch.log.error "Switch->[#{transaction_name}]: Ups! No se encontró la clase #{klass_name}..."
+              # Switch.log.error "Switch->[#{transaction_name}]: Ups! No se encontró la clase #{klass_name}..."
               raise self.settings[:on_class_not_found_exception], "La transacción #{transaction_name} no se pudo simular porque no existe la clase #{klass_name}" 
             else
-              Switch.log.debug "Switch->[#{transaction_name}]: La clase #{klass_name} no existe."
+              # Switch.log.debug "Switch->[#{transaction_name}]: La clase #{klass_name} no existe."
               return nil
             end
           end

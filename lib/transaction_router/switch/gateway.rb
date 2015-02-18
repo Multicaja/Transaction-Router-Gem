@@ -24,7 +24,7 @@ module TransactionRouter
           end
           obj = instance_class transaction_name
           if obj.class.method_defined? :before_call
-            Switch.log.debug "Switch->[#{transaction_name}]: La clase #{obj.class} contiene before_call. Invocando..."
+            # Switch.log.debug "Switch->[#{transaction_name}]: La clase #{obj.class} contiene before_call. Invocando..."
             obj.before_call params
           end
         end
@@ -36,7 +36,7 @@ module TransactionRouter
           end
           obj = instance_class transaction_name
           if obj.class.method_defined? :after_call
-            Switch.log.debug "Switch->[#{transaction_name}]: La clase #{obj.class} contiene after_call. Invocando..."
+            # Switch.log.debug "Switch->[#{transaction_name}]: La clase #{obj.class} contiene after_call. Invocando..."
             obj.after_call result, params
           end
           translate_result result
@@ -64,7 +64,7 @@ module TransactionRouter
         end
 
         def log_routing_starting transaction_name, type
-          Switch.log.debug "Switch->[#{transaction_name}]: Enrutando la transacción por #{type}"
+          # Switch.log.debug "Switch->[#{transaction_name}]: Enrutando la transacción por #{type}"
         end
 
         private

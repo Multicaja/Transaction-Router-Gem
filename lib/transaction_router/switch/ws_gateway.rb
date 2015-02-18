@@ -11,7 +11,7 @@ module TransactionRouter
 
         # Responde la transacción con el webservice
         def ws(transaction_name, payload)
-          Switch.log.debug "Switch->[#{transaction_name}]: Se invocará el ws..."
+          # Switch.log.debug "Switch->[#{transaction_name}]: Se invocará el ws..."
           ws_payload = {}
           # El hash viene con símbolos como llaves, las que tienen que pasar a strings en mayúsculas
           payload.map{ |k,v| ws_payload[k.to_s.upcase] = v }

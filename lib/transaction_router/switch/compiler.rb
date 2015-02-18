@@ -94,7 +94,7 @@ module TransactionRouter
         end
 
         def compile
-          log.debug "Conjunto de rutas: #{Switch.route_set}"
+          # log.debug "Conjunto de rutas: #{Switch.route_set}"
           Switch.route_set.each do |name, settings|
             case settings[:type]
             when :file

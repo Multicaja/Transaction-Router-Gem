@@ -56,11 +56,11 @@ module TransactionRouter
 
           # @client = Savon.client(wsdl: "./public/COW_2.wsdl", log: true, wsse_auth: ["usr_multicaja_01", "ht$Gb9c0aJU6"], wsse_timestamp: true, :ssl_verify_mode => :none, env_namespace: :soapenv)
 
-          log.debug "URI => #{uri}"
+          # log.debug "URI => #{uri}"
           # proxy = Savon::Client.new(wsdl: uri, open_timeout: open_t, read_timeout: read_t, namespace: ns)
           proxy = Savon.client(wsdl: multicaja_ws, log: true, env_namespace: :soapenv, open_timeout: open_t, read_timeout: read_t)
 
-          log.debug "proxy => #{proxy.inspect}"
+          # log.debug "proxy => #{proxy.inspect}"
           response = nil
           begin
             # proxy.body = body
@@ -70,7 +70,7 @@ module TransactionRouter
               message(body)
               # log.debug "message => #{message}"
             end
-            log.debug "response #{response}"
+            # log.debug "response #{response}"
             # response = client.call(:entrada, message: {:tipo_tx => tipo_tx, item: => item_array})
             # response = proxy.webservice! do |soap|
             #   soap.namespace = ns
@@ -86,27 +86,27 @@ Timeout al invocar al ws: #{ext.message}
     open: #{proxy.request.http.open_timeout}
     read: #{proxy.request.http.read_timeout}
 EXT
-            log.error msg
+            # log.error msg
             raise self.settings[:on_timeout_exception], msg
           rescue Savon::SOAPFault => exs
             msg = <<EXS
 Error SOAP al invocar al ws: #{exs.message}
   Params: #{body.to_s}
 EXS
-            log.error msg
+            # log.error msg
             raise self.settings[:on_http_error_exception], msg
           rescue Savon::HTTPError => exh
             msg = <<EXH
 Error HTTP al invocar al ws: #{exh.message}
   Params: #{body.to_s}
 EXH
-            log.error msg
+            # log.error msg
             raise self.settings[:on_soap_error_exception], msg
           end
           # se pasa la respuesta a un hash y se chequea que venga el arreglo de items
           result = response.to_hash
-          log.debug "\n \n =====RESPONSE XML ====#{tipo_tx}===>\n #{format_xml response.to_xml} \n \n"
-          log.debug "Respuesta del ws: #{result.to_s}"
+          # log.debug "\n \n =====RESPONSE XML ====#{tipo_tx}===>\n #{format_xml response.to_xml} \n \n"
+          # log.debug "Respuesta del ws: #{result.to_s}"
           if response.nil? or not result.key?(:salida_estandar) or result[:salida_estandar].nil? or not result[:salida_estandar].key?(:item)
             msg = <<EXE
 La respuesta del ws no es válida o no está completa: #{response.to_s}
